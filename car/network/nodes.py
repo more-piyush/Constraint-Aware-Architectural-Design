@@ -1,0 +1,173 @@
+"""Node registry for the architectural design Bayesian network.
+
+16 nodes organized in 3 layers:
+- Layer 1: Latent variables (design intent) -- these are the PRIMARY drivers
+- Layer 2: Observed variables (constraints) -- these filter/shape the design
+- Layer 3: Decision variables (design outputs) -- the generated design choices
+"""
+
+from __future__ import annotations
+
+from car.models.network_spec import NodeSpec
+
+
+class NodeRegistry:
+    """Registry of all nodes in the Bayesian network."""
+
+    def get_all_nodes(self) -> list[NodeSpec]:
+        return self._latent_nodes() + self._observed_nodes() + self._decision_nodes()
+
+    def get_node(self, name: str) -> NodeSpec:
+        for node in self.get_all_nodes():
+            if node.name == name:
+                return node
+        raise KeyError(f"Node '{name}' not found in registry")
+
+    def _latent_nodes(self) -> list[NodeSpec]:
+        """Design intent nodes -- the architect's rough design drives generation."""
+        return [
+            NodeSpec(
+                name="aesthetic_feel",
+                variable_type="latent",
+                category="intent",
+                cardinality=4,
+                state_names=["minimalist", "industrial", "organic", "classical"],
+                description="The architect's intended aesthetic feel for the building",
+            ),
+            NodeSpec(
+                name="view_priority",
+                variable_type="latent",
+                category="intent",
+                cardinality=3,
+                state_names=["low", "medium", "high"],
+                description="Priority given to optimizing views from the building",
+            ),
+            NodeSpec(
+                name="sketch_topology",
+                variable_type="latent",
+                category="intent",
+                cardinality=3,
+                state_names=["compact", "linear", "courtyard"],
+                description="Initial sketch topology / building footprint shape",
+            ),
+        ]
+
+    def _observed_nodes(self) -> list[NodeSpec]:
+        """Constraint nodes -- observed from site data, act as filters."""
+        return [
+            NodeSpec(
+                name="far_class",
+                variable_type="observed",
+                category="regulatory",
+                cardinality=3,
+                state_names=["low_far", "medium_far", "high_far"],
+                description="Floor Area Ratio classification",
+            ),
+            NodeSpec(
+                name="height_restriction",
+                variable_type="observed",
+                category="regulatory",
+                cardinality=3,
+                state_names=["unrestricted", "moderate", "strict"],
+                description="Height limit severity (airport zones = strict)",
+            ),
+            NodeSpec(
+                name="setback_class",
+                variable_type="observed",
+                category="regulatory",
+                cardinality=2,
+                state_names=["standard", "generous"],
+                description="Setback requirement classification",
+            ),
+            NodeSpec(
+                name="solar_orientation",
+                variable_type="observed",
+                category="environmental",
+                cardinality=4,
+                state_names=["north", "east", "south", "west"],
+                description="Primary solar orientation of the site",
+            ),
+            NodeSpec(
+                name="wind_exposure",
+                variable_type="observed",
+                category="environmental",
+                cardinality=3,
+                state_names=["sheltered", "moderate", "exposed"],
+                description="Wind exposure level at the site",
+            ),
+            NodeSpec(
+                name="seismic_zone_class",
+                variable_type="observed",
+                category="geophysical",
+                cardinality=3,
+                state_names=["low_risk", "moderate_risk", "high_risk"],
+                description="Seismic zone risk classification",
+            ),
+            NodeSpec(
+                name="material_class",
+                variable_type="observed",
+                category="technical",
+                cardinality=4,
+                state_names=["steel", "concrete", "timber", "masonry"],
+                description="Dominant available structural material",
+            ),
+            NodeSpec(
+                name="wall_thickness_class",
+                variable_type="observed",
+                category="technical",
+                cardinality=3,
+                state_names=["thin", "standard", "thick"],
+                description="Wall thickness classification from technical constraints",
+            ),
+        ]
+
+    def _decision_nodes(self) -> list[NodeSpec]:
+        """Design output nodes -- the design choices generated by inference."""
+        return [
+            NodeSpec(
+                name="structural_system",
+                variable_type="decision",
+                category="design",
+                cardinality=5,
+                state_names=[
+                    "steel_frame",
+                    "reinforced_concrete",
+                    "timber_frame",
+                    "masonry",
+                    "hybrid_steel_concrete",
+                ],
+                description="Primary structural system for the building",
+            ),
+            NodeSpec(
+                name="num_floors",
+                variable_type="decision",
+                category="design",
+                cardinality=4,
+                state_names=["1_floor", "2_3_floors", "4_7_floors", "8_plus_floors"],
+                description="Number of floors category",
+            ),
+            NodeSpec(
+                name="window_size",
+                variable_type="decision",
+                category="design",
+                cardinality=4,
+                state_names=["small", "medium", "large", "full_glass"],
+                description="Window-to-wall ratio category",
+            ),
+            NodeSpec(
+                name="wall_type",
+                variable_type="decision",
+                category="design",
+                cardinality=3,
+                state_names=["load_bearing", "curtain_wall", "partition"],
+                description="Primary wall construction type",
+            ),
+            NodeSpec(
+                name="roof_type",
+                variable_type="decision",
+                category="design",
+                cardinality=3,
+                state_names=["flat", "pitched", "green_roof"],
+                description="Roof type selection",
+            ),
+        ]

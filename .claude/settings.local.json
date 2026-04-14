@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:pgmpy.org)",
+      "Bash(pip install -e \".[dev]\")",
+      "Bash(pip install -e \"C:/Users/USER/Desktop/Projects/CAR[dev]\")",
+      "Bash(SHELL=/usr/bin/bash pip install -e \"C:/Users/USER/Desktop/Projects/CAR[dev]\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pip install flask pgmpy pydantic numpy scipy pandas networkx matplotlib click)"
+    ]
+  }
+}

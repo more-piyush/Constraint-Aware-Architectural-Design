@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "find-torch",
+      "runtimeExecutable": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "runtimeArgs": ["find_torch.py"],
+      "port": 5003
+    },
+    {
+      "name": "car-web",
+      "runtimeExecutable": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+      "runtimeArgs": ["run_web.py", "--port", "5000"],
+      "port": 5000
+    }
+  ]
+}

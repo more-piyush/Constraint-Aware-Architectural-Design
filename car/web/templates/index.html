@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CAR - Architectural Design Pipeline</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="container">
+    <header>
+        <h1>CAR: Architectural Design Pipeline</h1>
+        <p>Constraint-satisfying Architectural design using pRobabilistic graphical models</p>
+    </header>
+
+    {% if error %}
+    <div class="error-banner">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Preset buttons -->
+    <div class="presets">
+        <strong>Load Preset:</strong>
+        <button type="button" class="outline" onclick="loadPreset('residential')">Residential (LA)</button>
+        <button type="button" class="outline" onclick="loadPreset('commercial')">Commercial (Tokyo)</button>
+        <button type="button" class="outline" onclick="loadPreset('mixed_use')">Mixed-Use (Copenhagen)</button>
+    </div>
+
+    <form id="carForm" method="POST" action="/run">
+
+        <!-- 1. Design Intent -->
+        <details open>
+            <summary><strong>Design Intent</strong> &mdash; Architect's vision (primary driver)</summary>
+            <div class="grid">
+                <label>
+                    Aesthetic Feel
+                    <select name="aesthetic_feel" id="aesthetic_feel" required>
+                        <option value="">-- Select --</option>
+                        <option value="minimalist">Minimalist</option>
+                        <option value="industrial">Industrial</option>
+                        <option value="organic">Organic</option>
+                        <option value="classical">Classical</option>
+                    </select>
+                </label>
+                <label>
+                    View Priority
+                    <select name="view_priority" id="view_priority" required>
+                        <option value="">-- Select --</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+                <label>
+                    Sustainability Priority
+                    <select name="sustainability_priority" id="sustainability_priority">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+                <label>
+                    Budget Level
+                    <select name="budget_level" id="budget_level">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </label>
+            </div>
+        </details>
+
+        <!-- 2. Site -->
+        <details open>
+            <summary><strong>Site</strong></summary>
+            <label>
+                Site Area (sqm)
+                <input type="number" name="site_area_sqm" id="site_area_sqm"
+                       step="any" min="0.01" required placeholder="e.g. 500">
+            </label>
+        </details>
+
+        <!-- 3. Regulatory Constraints -->
+        <details open>
+            <summary><strong>Regulatory Constraints</strong></summary>
+            <div class="grid">
+                <label>
+                    FAR Limit (Floor Area Ratio)
+                    <input type="number" name="far_limit" id="far_limit"
+                           step="any" min="0.01" required placeholder="e.g. 0.6">
+                </label>
+                <label>
+                    Height Limit (m)
+                    <input type="number" name="height_limit_m" id="height_limit_m"
+                           step="any" min="0.01" required placeholder="e.g. 10">
+                </label>
+            </div>
+            <div class="grid">
+                <label>
+                    Setback Front (m)
+                    <input type="number" name="setback_front_m" id="setback_front_m"
+                           step="any" min="0" required placeholder="e.g. 6">
+                </label>
+                <label>
+                    Setback Side (m)
+                    <input type="number" name="setback_side_m" id="setback_side_m"
+                           step="any" min="0" required placeholder="e.g. 3">
+                </label>
+                <label>
+                    Setback Rear (m)
+                    <input type="number" name="setback_rear_m" id="setback_rear_m"
+                           step="any" min="0" required placeholder="e.g. 5">
+                </label>
+            </div>
+            <div class="grid">
+                <label>
+                    Min Parking Spaces
+                    <input type="number" name="min_parking_spaces" id="min_parking_spaces"
+                           min="0" value="0">
+                </label>
+            </div>
+            <fieldset class="checkboxes">
+                <label>
+                    <input type="checkbox" name="is_airport_zone" id="is_airport_zone">
+                    Airport Zone
+                </label>
+                <label>
+                    <input type="checkbox" name="fire_escape_required" id="fire_escape_required" checked>
+                    Fire Escape Required
+                </label>
+            </fieldset>
+        </details>
+
+        <!-- 4. Environmental Constraints -->
+        <details open>
+            <summary><strong>Environmental Constraints</strong></summary>
+            <div class="grid">
+                <label>
+                    Latitude
+                    <input type="number" name="latitude" id="latitude"
+                           step="any" min="-90" max="90" required placeholder="e.g. 34.05">
+                </label>
+                <label>
+                    Longitude
+                    <input type="number" name="longitude" id="longitude"
+                           step="any" min="-180" max="180" required placeholder="e.g. -118.24">
+                </label>
+            </div>
+            <div class="grid">
+                <label>
+                    Solar Azimuth Peak (deg)
+                    <input type="number" name="solar_azimuth_peak_deg" id="solar_azimuth_peak_deg"
+                           step="any" min="0" max="359.99" required placeholder="e.g. 180">
+                </label>
+                <label>
+                    Solar Elevation Peak (deg)
+                    <input type="number" name="solar_elevation_peak_deg" id="solar_elevation_peak_deg"
+                           step="any" min="0" max="90" required placeholder="e.g. 73">
+                </label>
+            </div>
+            <div class="grid">
+                <label>
+                    Prevailing Wind Direction (deg)
+                    <input type="number" name="prevailing_wind_direction_deg" id="prevailing_wind_direction_deg"
+                           step="any" min="0" max="359.99" required placeholder="e.g. 270">
+                </label>
+                <label>
+                    Prevailing Wind Speed (km/h)
+                    <input type="number" name="prevailing_wind_speed_kmh" id="prevailing_wind_speed_kmh"
+                           step="any" min="0" value="15" placeholder="e.g. 15">
+                </label>
+                <label>
+                    Annual Rainfall (mm)
+                    <input type="number" name="annual_rainfall_mm" id="annual_rainfall_mm"
+                           step="any" min="0" value="800" placeholder="e.g. 800">
+                </label>
+            </div>
+        </details>
+
+        <!-- 5. Geophysical Constraints -->
+        <details open>
+            <summary><strong>Geophysical Constraints</strong></summary>
+            <div class="grid">
+                <label>
+                    Seismic Zone
+                    <select name="seismic_zone" id="seismic_zone" required>
+                        <option value="">-- Select --</option>
+                        <option value="0">Zone 0 (No risk)</option>
+                        <option value="1">Zone 1</option>
+                        <option value="2">Zone 2</option>
+                        <option value="3">Zone 3</option>
+                        <option value="4">Zone 4</option>
+                        <option value="5">Zone 5 (Extreme)</option>
+                    </select>
+                </label>
+                <label>
+                    Soil Bearing Capacity (kPa)
+                    <input type="number" name="soil_bearing_capacity_kpa" id="soil_bearing_capacity_kpa"
+                           step="any" min="0.01" value="150" placeholder="e.g. 150">
+                </label>
+                <label>
+                    Water Table Depth (m)
+                    <input type="number" name="water_table_depth_m" id="water_table_depth_m"
+                           step="any" min="0.01" value="5" placeholder="e.g. 5">
+                </label>
+            </div>
+        </details>
+
+        <!-- 6. Technical Constraints -->
+        <details open>
+            <summary><strong>Technical Constraints</strong></summary>
+
+            <h4>Available Materials</h4>
+            <div id="materials-container"></div>
+            <button type="button" class="outline secondary" onclick="addMaterial()" style="margin-bottom:1.5rem">
+                + Add Material
+            </button>
+
+            <hr>
+            <div class="grid">
+                <label>
+                    Wall Thickness Min (mm)
+                    <input type="number" name="wall_thickness_min_mm" id="wall_thickness_min_mm"
+                           step="any" min="0.01" value="100">
+                </label>
+                <label>
+                    Wall Thickness Max (mm)
+                    <input type="number" name="wall_thickness_max_mm" id="wall_thickness_max_mm"
+                           step="any" min="0.01" value="500">
+                </label>
+            </div>
+            <div class="grid">
+                <label>
+                    Floor-to-Floor Height Min (m)
+                    <input type="number" name="floor_to_floor_height_min_m" id="floor_to_floor_height_min_m"
+                           step="any" min="0.01" value="2.7">
+                </label>
+                <label>
+                    Floor-to-Floor Height Max (m)
+                    <input type="number" name="floor_to_floor_height_max_m" id="floor_to_floor_height_max_m"
+                           step="any" min="0.01" value="4.5">
+                </label>
+            </div>
+        </details>
+
+        <!-- 7. Pipeline Configuration -->
+        <details>
+            <summary><strong>Pipeline Configuration</strong></summary>
+            <div class="grid">
+                <label>
+                    Inference Method
+                    <select name="inference_method" id="inference_method">
+                        <option value="map" selected>MAP (fastest, single best design)</option>
+                        <option value="mcmc">MCMC (samples multiple alternatives)</option>
+                        <option value="variational">Variational (fast multi-design)</option>
+                    </select>
+                </label>
+                <label id="samples-label" style="display:none">
+                    Number of Samples
+                    <input type="number" name="num_samples" id="num_samples"
+                           value="500" min="10" max="5000">
+                </label>
+                <label>
+                    Random Seed
+                    <input type="number" name="random_seed" id="random_seed" value="42">
+                </label>
+            </div>
+        </details>
+
+        <button type="submit" id="submitBtn" style="margin-top:1rem">
+            Run Inference Pipeline
+        </button>
+    </form>
+
+    <!-- Loading spinner dialog -->
+    <dialog id="loadingDialog">
+        <article>
+            <h3 aria-busy="true">Running inference pipeline...</h3>
+            <p>This may take a few seconds for MAP, or longer for MCMC/Variational.</p>
+        </article>
+    </dialog>
+</main>
+
+<script>
+/* --- Preset Loading --- */
+async function loadPreset(name) {
+    try {
+        const resp = await fetch('/preset/' + name);
+        if (!resp.ok) throw new Error('Preset not found');
+        const data = await resp.json();
+        const sc = data.site_constraints;
+        const di = data.design_intent;
+
+        // Design Intent
+        document.getElementById('aesthetic_feel').value = di.aesthetic_feel;
+        document.getElementById('view_priority').value = di.view_priority;
+        document.getElementById('sustainability_priority').value = di.sustainability_priority || 'medium';
+        document.getElementById('budget_level').value = di.budget_level || 'medium';
+
+        // Site
+        document.getElementById('site_area_sqm').value = sc.site_area_sqm;
+
+        // Regulatory
+        document.getElementById('far_limit').value = sc.regulatory.far_limit;
+        document.getElementById('height_limit_m').value = sc.regulatory.height_limit_m;
+        document.getElementById('is_airport_zone').checked = sc.regulatory.is_airport_zone;
+        document.getElementById('setback_front_m').value = sc.regulatory.setback_front_m;
+        document.getElementById('setback_side_m').value = sc.regulatory.setback_side_m;
+        document.getElementById('setback_rear_m').value = sc.regulatory.setback_rear_m;
+        document.getElementById('min_parking_spaces').value = sc.regulatory.min_parking_spaces;
+        document.getElementById('fire_escape_required').checked = sc.regulatory.fire_escape_required;
+
+        // Environmental
+        document.getElementById('latitude').value = sc.environmental.latitude;
+        document.getElementById('longitude').value = sc.environmental.longitude;
+        document.getElementById('solar_azimuth_peak_deg').value = sc.environmental.solar_azimuth_peak_deg;
+        document.getElementById('solar_elevation_peak_deg').value = sc.environmental.solar_elevation_peak_deg;
+        document.getElementById('prevailing_wind_direction_deg').value = sc.environmental.prevailing_wind_direction_deg;
+        document.getElementById('prevailing_wind_speed_kmh').value = sc.environmental.prevailing_wind_speed_kmh;
+        document.getElementById('annual_rainfall_mm').value = sc.environmental.annual_rainfall_mm;
+
+        // Geophysical
+        document.getElementById('seismic_zone').value = sc.geophysical.seismic_zone;
+        document.getElementById('soil_bearing_capacity_kpa').value = sc.geophysical.soil_bearing_capacity_kpa;
+        document.getElementById('water_table_depth_m').value = sc.geophysical.water_table_depth_m;
+
+        // Technical - materials
+        const container = document.getElementById('materials-container');
+        container.innerHTML = '';
+        materialIndex = 0;
+        sc.technical.available_materials.forEach(function(m) { addMaterial(m); });
+
+        document.getElementById('wall_thickness_min_mm').value = sc.technical.wall_thickness_min_mm;
+        document.getElementById('wall_thickness_max_mm').value = sc.technical.wall_thickness_max_mm;
+        document.getElementById('floor_to_floor_height_min_m').value = sc.technical.floor_to_floor_height_min_m;
+        document.getElementById('floor_to_floor_height_max_m').value = sc.technical.floor_to_floor_height_max_m;
+
+    } catch (err) {
+        alert('Failed to load preset: ' + err.message);
+    }
+}
+
+/* --- Dynamic Materials --- */
+var materialIndex = 0;
+
+function addMaterial(data) {
+    var container = document.getElementById('materials-container');
+    var idx = materialIndex++;
+    var div = document.createElement('div');
+    div.className = 'material-entry';
+    div.innerHTML =
+        '<div class="material-header">' +
+            '<strong>Material #' + (idx + 1) + '</strong>' +
+            '<button type="button" class="outline secondary" onclick="this.closest(\'.material-entry\').remove()">Remove</button>' +
+        '</div>' +
+        '<div class="grid">' +
+            '<label>Name' +
+                '<input type="text" name="material_name_' + idx + '" value="' + (data && data.name ? data.name : '') + '" required placeholder="e.g. timber">' +
+            '</label>' +
+            '<label>Young\'s Modulus (GPa)' +
+                '<input type="number" step="any" min="0.01" name="material_youngs_' + idx + '" value="' + (data && data.youngs_modulus_gpa ? data.youngs_modulus_gpa : '') + '" required>' +
+            '</label>' +
+            '<label>Thermal Mass (kJ/m3K)' +
+                '<input type="number" step="any" min="0.01" name="material_thermal_' + idx + '" value="' + (data && data.thermal_mass_kj_per_m3k ? data.thermal_mass_kj_per_m3k : '') + '" required>' +
+            '</label>' +
+        '</div>' +
+        '<div class="grid">' +
+            '<label>Density (kg/m3)' +
+                '<input type="number" step="any" min="0.01" name="material_density_' + idx + '" value="' + (data && data.density_kg_per_m3 ? data.density_kg_per_m3 : '') + '" required>' +
+            '</label>' +
+            '<label>Cost (USD/m3)' +
+                '<input type="number" step="any" min="0.01" name="material_cost_' + idx + '" value="' + (data && data.cost_per_m3_usd ? data.cost_per_m3_usd : '') + '" required>' +
+            '</label>' +
+        '</div>';
+    container.appendChild(div);
+}
+
+/* --- Show/hide num_samples based on method --- */
+document.getElementById('inference_method').addEventListener('change', function() {
+    document.getElementById('samples-label').style.display = this.value === 'map' ? 'none' : '';
+});
+
+/* --- Loading spinner on submit --- */
+document.getElementById('carForm').addEventListener('submit', function() {
+    document.getElementById('loadingDialog').showModal();
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').setAttribute('aria-busy', 'true');
+});
+</script>
+</body>
+</html>

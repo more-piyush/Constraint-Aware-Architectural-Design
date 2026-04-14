@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CAR - Inference Results</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="container">
+
+    <!-- Header -->
+    <div class="results-header">
+        <h1>Inference Results</h1>
+        <a href="/" role="button" class="outline">Back to Form</a>
+    </div>
+
+    <!-- Summary Banner -->
+    <article class="summary-banner">
+        <div class="summary-grid">
+            <!-- Compliance Badge -->
+            <div class="score-card">
+                <div class="badge {{ 'pass' if compliance.is_compliant else 'fail' }}">
+                    {{ 'COMPLIANT' if compliance.is_compliant else 'NON-COMPLIANT' }}
+                </div>
+                <br>
+                <small>{{ compliance.passed_constraints_count }}/{{ compliance.checked_constraints_count }} constraints passed</small>
+            </div>
+
+            <!-- Confidence -->
+            <div class="score-card">
+                <div class="score-label">Confidence</div>
+                <div class="score-value">{{ "%.0f"|format(compliance.confidence_score * 100) }}%</div>
+                <progress value="{{ compliance.confidence_score }}" max="1"></progress>
+            </div>
+
+            <!-- Aesthetic -->
+            <div class="score-card">
+                <div class="score-label">Aesthetic</div>
+                <div class="score-value">{{ "%.2f"|format(map_design.aesthetic_score) }}</div>
+                <progress value="{{ map_design.aesthetic_score }}" max="1"></progress>
+            </div>
+
+            <!-- View -->
+            <div class="score-card">
+                <div class="score-label">View</div>
+                <div class="score-value">{{ "%.2f"|format(map_design.view_score) }}</div>
+                <progress value="{{ map_design.view_score }}" max="1"></progress>
+            </div>
+
+            <!-- Overall -->
+            <div class="score-card">
+                <div class="score-label">Overall</div>
+                <div class="score-value">{{ "%.2f"|format(map_design.overall_score) }}</div>
+                <progress value="{{ map_design.overall_score }}" max="1"></progress>
+            </div>
+        </div>
+    </article>
+
+    <!-- Design Parameters -->
+    <h2>MAP Design Parameters</h2>
+    <div class="params-grid">
+        <div class="param-card">
+            <small>Structural System</small>
+            <strong>{{ design.structural_system.value | replace('_', ' ') | title }}</strong>
+        </div>
+        <div class="param-card">
+            <small>Floors</small>
+            <strong>{{ design.num_floors }} ({{ "%.1f"|format(design.building_height_m) }}m)</strong>
+        </div>
+        <div class="param-card">
+            <small>Floor Area</small>
+            <strong>{{ "%.0f"|format(design.floor_area_sqm) }} sqm</strong>
+        </div>
+        <div class="param-card">
+            <small>Wall Type</small>
+            <strong>{{ design.wall_type.value | replace('_', ' ') | title }}</strong>
+        </div>
+        <div class="param-card">
+            <small>Wall Thickness</small>
+            <strong>{{ "%.0f"|format(design.wall_thickness_mm) }} mm</strong>
+        </div>
+        <div class="param-card">
+            <small>Windows</small>
+            <strong>{{ design.window_size.value | title }}</strong>
+        </div>
+        <div class="param-card">
+            <small>Roof Type</small>
+            <strong>{{ design.roof_type.value | replace('_', ' ') | title }}</strong>
+        </div>
+        <div class="param-card">
+            <small>Footprint</small>
+            <strong>{{ "%.1f"|format(design.footprint_width_m) }}m &times; {{ "%.1f"|format(design.footprint_depth_m) }}m</strong>
+        </div>
+        <div class="param-card">
+            <small>Primary Material</small>
+            <strong>{{ design.primary_material | title }}</strong>
+        </div>
+        <div class="param-card">
+            <small>Window Orientation</small>
+            <strong>{{ "%.0f"|format(design.window_orientation_deg) }}&deg;</strong>
+        </div>
+    </div>
+
+    <!-- Constraint Violations -->
+    {% if compliance.violations %}
+    <h2>Constraint Violations</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Constraint</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Actual</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in compliance.violations %}
+            <tr>
+                <td>{{ v.constraint_name }}</td>
+                <td>{{ v.constraint_type | title }}</td>
+                <td>{{ v.required_value }}</td>
+                <td>{{ v.actual_value }}</td>
+                <td class="{{ 'hard-violation' if v.severity == 'hard' else 'soft-violation' }}">
+                    {{ v.severity | upper }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <article class="all-pass">All constraints satisfied.</article>
+    {% endif %}
+
+    <!-- Visualizations -->
+    <h2>Bayesian Network</h2>
+    {% if network_img %}
+    <img src="{{ network_img }}" alt="Bayesian Network DAG" class="viz-image">
+    {% endif %}
+
+    <div class="viz-grid">
+        <div>
+            <h2>Floor Plan</h2>
+            {% if floorplan_img %}
+            <img src="{{ floorplan_img }}" alt="Floor Plan" class="viz-image">
+            {% endif %}
+        </div>
+        <div>
+            <h2>Building Section</h2>
+            {% if section_img %}
+            <img src="{{ section_img }}" alt="Building Section" class="viz-image">
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Design Alternatives (MCMC/VI) -->
+    {% if result.sampled_designs %}
+    <h2>Design Alternatives ({{ result.sampled_designs | length }} generated)</h2>
+
+    {% if comparison_img %}
+    <img src="{{ comparison_img }}" alt="Design Comparison" class="viz-image">
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Structure</th>
+                <th>Floors</th>
+                <th>Windows</th>
+                <th>Roof</th>
+                <th>Overall</th>
+                <th>Confidence</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sd in result.sampled_designs[:20] %}
+            <tr>
+                <td>{{ sd.iteration_id }}</td>
+                <td>{{ sd.design.structural_system.value | replace('_', ' ') | title }}</td>
+                <td>{{ sd.design.num_floors }} ({{ "%.1f"|format(sd.design.building_height_m) }}m)</td>
+                <td>{{ sd.design.window_size.value | title }}</td>
+                <td>{{ sd.design.roof_type.value | replace('_', ' ') | title }}</td>
+                <td>{{ "%.3f"|format(sd.overall_score) }}</td>
+                <td>{{ "%.0f"|format(sd.compliance.confidence_score * 100) }}%</td>
+                <td class="{{ 'status-pass' if sd.compliance.is_compliant else 'status-fail' }}">
+                    {{ 'PASS' if sd.compliance.is_compliant else 'FAIL' }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Input Summary -->
+    <details>
+        <summary><strong>Input Summary</strong></summary>
+        <table>
+            <tbody>
+                <tr><td>Aesthetic Feel</td><td>{{ design_intent.aesthetic_feel.value | title }}</td></tr>
+                <tr><td>View Priority</td><td>{{ design_intent.view_priority.value | title }}</td></tr>
+                <tr><td>Site Area</td><td>{{ "%.0f"|format(site_constraints.site_area_sqm) }} sqm</td></tr>
+                <tr><td>FAR Limit</td><td>{{ site_constraints.regulatory.far_limit }}</td></tr>
+                <tr><td>Height Limit</td><td>{{ site_constraints.regulatory.height_limit_m }}m</td></tr>
+                <tr><td>Airport Zone</td><td>{{ 'Yes' if site_constraints.regulatory.is_airport_zone else 'No' }}</td></tr>
+                <tr><td>Setbacks (F/S/R)</td><td>{{ site_constraints.regulatory.setback_front_m }}/{{ site_constraints.regulatory.setback_side_m }}/{{ site_constraints.regulatory.setback_rear_m }}m</td></tr>
+                <tr><td>Seismic Zone</td><td>{{ site_constraints.geophysical.seismic_zone.value }}</td></tr>
+                <tr><td>Solar Azimuth</td><td>{{ "%.0f"|format(site_constraints.environmental.solar_azimuth_peak_deg) }}&deg;</td></tr>
+                <tr><td>Wind Speed</td><td>{{ "%.0f"|format(site_constraints.environmental.prevailing_wind_speed_kmh) }} km/h</td></tr>
+            </tbody>
+        </table>
+    </details>
+
+    <!-- Downloads -->
+    <h2>Downloads</h2>
+    <nav>
+        <a href="/download/result.json" role="button" class="outline">Download result.json</a>
+    </nav>
+
+    <!-- Meta -->
+    <div class="meta-footer">
+        Inference method: {{ result.inference_method }} |
+        Elapsed: {{ "%.2f"|format(result.elapsed_seconds) }}s |
+        Alternatives: {{ result.sampled_designs | length }} |
+        Generated by CAR v0.1.0
+    </div>
+
+</main>
+</body>
+</html>

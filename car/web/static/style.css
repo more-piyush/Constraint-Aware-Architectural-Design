@@ -1,0 +1,174 @@
+/* CAR Web Interface - supplements Pico.css */
+
+/* --- Header --- */
+header h1 { margin-bottom: 0.25rem; }
+header p { color: var(--muted-color); margin-bottom: 1.5rem; }
+
+/* --- Preset buttons --- */
+.presets {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    padding: 1rem;
+    background: var(--card-background-color);
+    border-radius: 8px;
+}
+.presets strong { margin-right: 0.5rem; white-space: nowrap; }
+.presets button { margin-bottom: 0; }
+
+/* --- Form sections --- */
+details {
+    border: 1px solid var(--muted-border-color);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+details summary {
+    cursor: pointer;
+    padding: 0.75rem 0;
+    font-size: 1.05rem;
+}
+details[open] summary { margin-bottom: 0.5rem; }
+
+/* --- Material entries --- */
+.material-entry {
+    border: 1px solid var(--muted-border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+.material-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.material-header strong { font-size: 0.9rem; }
+.material-header button { margin-bottom: 0; padding: 0.25rem 0.75rem; font-size: 0.8rem; }
+
+/* --- Checkbox fieldset --- */
+fieldset.checkboxes {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    border: none;
+    padding: 0;
+}
+fieldset.checkboxes label { display: flex; align-items: center; gap: 0.5rem; }
+
+/* --- Results: Summary banner --- */
+.summary-banner { padding: 1.5rem; margin-bottom: 1.5rem; }
+.summary-grid {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+}
+.score-card {
+    text-align: center;
+    min-width: 130px;
+    flex: 1;
+}
+.score-card progress { width: 100%; margin-top: 0.3rem; }
+.score-value { font-size: 1.8rem; font-weight: bold; line-height: 1.2; }
+.score-label {
+    font-size: 0.8rem;
+    color: var(--muted-color);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+}
+.badge {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0.4rem 1.2rem;
+    border-radius: 6px;
+    margin-bottom: 0.3rem;
+}
+.badge.pass { background: #E8F5E9; color: #2E7D32; }
+.badge.fail { background: #FFEBEE; color: #C62828; }
+
+/* --- Violations --- */
+.hard-violation { color: #C62828; font-weight: bold; }
+.soft-violation { color: #EF6C00; font-weight: bold; }
+.all-pass { text-align: center; color: #2E7D32; font-weight: bold; }
+
+/* --- Status in tables --- */
+.status-pass { color: #2E7D32; font-weight: bold; }
+.status-fail { color: #C62828; font-weight: bold; }
+
+/* --- Visualization images --- */
+.viz-image {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 0.5rem 0 1.5rem;
+}
+
+/* --- Design parameter cards --- */
+.params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.param-card {
+    background: var(--card-background-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--muted-border-color);
+}
+.param-card small {
+    display: block;
+    color: var(--muted-color);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+.param-card strong { font-size: 1rem; }
+
+/* --- Error banner --- */
+.error-banner {
+    background: #FFEBEE;
+    border-left: 4px solid #C62828;
+    color: #C62828;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+
+/* --- Results header --- */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.results-header h1 { margin-bottom: 0; }
+
+/* --- Meta footer --- */
+.meta-footer {
+    color: var(--muted-color);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--muted-border-color);
+}
+
+/* --- Viz grid (floor plan + section side by side) --- */
+.viz-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+@media (max-width: 768px) {
+    .viz-grid { grid-template-columns: 1fr; }
+}
